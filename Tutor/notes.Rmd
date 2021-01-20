@@ -1,0 +1,137 @@
+---
+title: "Financial & Investment Mathematics A"
+output:
+  html_document:
+    df_print: paged
+  html_notebook: default
+  pdf_document: default
+---
+### Topic 3: Present Value of Cash Flows
+\
+\
+Present Value简单来说就是一种将未来现金流价值折现到当下时间点$t=0$的一种方法。我们可以把这种折现方法用函数来表达，
+<center>$\large{\text{PV}\left(\text{CF}_{t}\right)}$,</center>
+其中$\text{PV}(\cdot)$是折现函数，常用的有discrete time discount和continuous time discount；$\text{CF}_{t}$是一个表示未来所有现金流的process，可以是一个deterministic process（未来所有t上的现金流都已知）或者一个stochastic process (未来现金流未知)。
+
+$\text{CF}_{t}$本身也可以是discrete-time process或者continuous-time process。如果$\text{CF}_{t}$是一个离散过程，则我们的所有未来现金流在特定的时间点上才会存在（$t\in\{1, 2, ...,\infty\}$）。而如果$\text{CF}_{t}$是连续的，则所有现金流在任何一个微小的时间点上都会存在（$t\in\mathbb{R}^{+}$）。
+\
+\
+**Example 1 (Discrete-time $\text{CF}_{t}$):**
+\
+考虑$CF_{t}$已知的情况，且我们也在$t=0$时知道未来所有的现金流会发生在$t_{1}\le t_{2}\le t_{3}\le\cdots\le t_{n}$上，对应的现金流的数值为$C_{t1}, C_{t2}, C_{t3}, \cdots, C_{t_{n}}$。
+\
+\
+要对这样的$CF_{t}$求现值，我们分别对每一笔现金流折现到$t=0$再求和即可，
+<center>$\large{\text{PV}(\text{CF}_{t})=\sum_{i=1}^{n}C_{t_{i}}D(t_{i})}$,</center>
+where $D(t_{i})$ is the discount factor at time $t_{i}$.
+\
+\
+对于discount factor $D(\cdot)$, 我们可以直接假设constant interest rate, i.e. 无风险利率为r $\forall t\in\{t_{1}, ..., t_{n}\}$。这是一种最简单的情况：
+<center>$\large{D(t_{i})=\exp\{-rt_{i}\}}$.</center>
+也可以假设r不是一个简单的常数，而是一个关于时间的deterministic function或者r本身是一个stochastic process, i.e., $r_{t}=\delta(t)$.
+\
+\
+当r不再是一个常数时，我们的折现因子$D(0, t_{i})$（负责计算从$t=0$到$t=t_{i}$的discount factor）表示为积分形式
+<center>$\large{D(0,t_{i})=\exp\{-\int_{0}^{t_{i}}\delta(t)dt\}}$.</center>
+\
+*例题1：*
+$C_{t_{1}}=500, C_{t_2}=600, C_{t_{3}}=800, C_{t_{4}}=1000$
+```{r}
+r <- 0.07
+CF <- c(500, 600, 800, 1000)
+t <- c(2, 6, 9, 12)           # in years
+PV <- 0
+for (i in 1:length(CF)) {
+  CF_i <- CF[i]
+  t_i <- t[i]
+  D_ti <- 1/((1+r)^t_i)
+  PV <- PV + (D_ti*CF_i)
+}
+print(PV)
+```
+```{r}
+CF <- c(500, 600, 800, 1000)
+t <- c(2, 6, 9, 12)
+PV <- 0
+r1 <- 0.07
+r2 <- 0.09
+PV <- (1/((1+r1)^t[1]))*CF[1] + (1/((1+r1)^t[2]))*CF[2] + ((1/((1+r2)^(t[3]-t[2])))*CF[3] + (1/((1+r2)^(t[4]-t[2])))*CF[4])*(1/((1+r1)^6))
+print(PV)
+```
+*例题2：*
+The initial cash flow is 1,000 at the first year. The cash flow declines at a rate of 2% per year thereafter. Assume the risk-free rate r (with continuously compounding per annum) is 7%:
+\
+\
+\
+\
+以上，我们考虑了$CF_{t}$是一个discrete-time process的情况。接下来我们更进一步，考虑连续时间下的$CF_{t}$求现值的问题。
+\
+\
+在continuous-time model下，我们记$dt$为一个很小的时间段（$dt=t_{i+1}-t_{i}\simeq\epsilon,\,dt>0$）。记$\rho(t)$为单位时间段内的现金流发生的频率。和前面讲的关于无风险理论的stochastic/ deterministic process类似，$\rho(t)$也可以为关于时间的确定性函数或一个随机过程。
+\
+\
+如果$rho(t)$为常数，每单位时间段$dt$内的现金流$C_{t}$为$C_{t}=\rho(t)dt$。如果$\rho(t)$不为常数，则$C_{t}=\int_{t_{i}}^{t_{i+1}}\rho(t)dt$（类比无风险利率$r$的随机过程）。
+\
+\
+为了更直观地理解continuous-time模型下的折现算法，我们先考虑$t=\{t_{0}=0, t_{1}, ..., t_{n}=T;0<T<\infty\}$，即整个时间轴$[0,T]$无限等分为了集合$t$（$dt\simeq\epsilon$为每个元素的距离,i.e., 单位时间段）。
+\
+\
+根据前面所讲的离散时间下的算法，我们有
+<center>$\large{\text{PV}=\sum_{i=1}^{n}D(t_{i})\rho(t_{i})\Delta(t_{i})}$,</center>
+where $D(t_{i})$ is the discount factor applied to the time interval $(t_{i-1}, t_{i})$; $\rho(t_{i})$ is the amount of cash flow per unit time within the interval $(t_{i-1}, t_{i})$; and $\Delta(t_{i})=t_{i}-t_{i-1}$。
+\
+\
+当$n\rightarrow\infty$，上式converges to
+<center>$\large{\text{PV}=\int_{0}^{T}D(t)\rho(t)dt}$.</center>
+\
+*例题3：*
+$\delta(t) = 0.09\,\forall\,t$. Continuous cash flow for the time interval $t\in(0, 7)$.
+```{r}
+#a) rate of payment: 450 per annum
+
+    # In this case, we can let dt=1(year)
+r <- 0.09           # constant r
+paymntRate <- 450   # constant rate of payment
+integrand <- function(t){exp(-r*t) * paymntRate}
+integrate(integrand, 0, 7)
+```
+```{r}
+#b) rate of payment: 450*exp(0.07t) per annum
+
+r <- 0.09
+paymntRate <- function(t){450*exp(0.07*t)}
+integrand <- function(t){exp(-r*t) * paymntRate(t)}
+integrate(integrand, 0, 7)
+```
+*例题4（r and the payment rate are deterministic functions of time）：*
+```{r}
+r <- function(t){0.06+0.03*t}
+discntFctr <- function(t){1/exp(0.06*t+0.015*(t^2))}
+paymntRate <- function(t){100 * exp(-0.12 + 0.08*t + 0.015*(t^2))}
+integrand <- function(t){discntFctr(t) * paymntRate(t)}
+integrate(integrand, 4, 6)
+```
+*例题5 （The risk-free rate is a step function）：*
+```{r}
+#a) ...
+
+#b) Continuous-time CF(t), with the payment rate of 10/year, T = 30
+
+  # t <= 15
+r1 <- 0.06
+r2 <- 0.03
+integrand1 <- function(t){exp(-r1*t) * 10}
+integrand2 <- function(t){exp(-0.9+r2*t) * 10}
+pv1 <- integrate(integrand1, 0, 15)
+pv1 <- pv1$value
+pv2 <- integrate(integrand2, 15, 30)
+pv2 <- pv2$value
+pv2to0 <- pv2 * exp(-r1*15)
+pv <- pv1 + pv2to0
+print(pv)
+```
+*例题6：*
+```{r}
+```
+
+
